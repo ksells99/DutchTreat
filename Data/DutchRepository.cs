@@ -1,4 +1,5 @@
 ﻿using DutchTreat.Data.Entities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,59 @@ namespace DutchTreat.Data
             _logger = logger;
         }
 
+        // GET all orders
+        public IEnumerable<Order> GetAllOrders(bool includeItems)
+        {
+         
+            try
+            {
+                _logger.LogInformation("GetAllOrders");
+
+                if(includeItems)
+                {
+                    return _ctx.Orders
+                        .Include(order => order.Items)
+                        .ThenInclude(item => item.Product)
+                        .ToList();
+                } else
+                {
+                    return _ctx.Orders
+                        .ToList();
+                }
+              
+            }
+            catch (Exception ex)
+            {
+
+                _logger.LogError($"Failed to fetch all orders: {ex}");
+                return null;
+            }
+        }
+
+
+        // GET order by ID
+        public Order GetOrderById(int id)
+        {
+  
+
+            try
+            {
+                _logger.LogInformation("GetOrderById");
+                return _ctx.Orders
+                    .Include(order => order.Items)
+                    .ThenInclude(item => item.Product)
+                    .Where(order => order.Id == id)
+                    .FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+
+                _logger.LogError($"Failed to fetch order {id}: {ex}");
+                return null;
+            }
+        }
+
+        // GET all products
         public IEnumerable<Product> GetAllProducts()
         {
             try
@@ -34,6 +88,7 @@ namespace DutchTreat.Data
    
         }
 
+        // GET products by category
         public IEnumerable<Product> GetProductsByCategory(string category)
         {
        
@@ -51,6 +106,8 @@ namespace DutchTreat.Data
             }
         }
 
+
+        // Save DB changes
         public bool SaveAll()
         {
     
@@ -64,6 +121,23 @@ namespace DutchTreat.Data
 
                 _logger.LogError($"Failed to save changes: {ex}");
                 return false;
+            }
+        }
+
+
+        // POST add data to DB
+        public void AddEntity(object model)
+        {
+
+            try
+            {
+                _logger.LogInformation("AddEntity");
+                _ctx.Add(model);
+            }
+            catch (Exception ex)
+            {
+
+                _logger.LogError($"Failed to add entity: {ex}");
             }
         }
     }

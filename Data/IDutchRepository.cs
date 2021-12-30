@@ -5,8 +5,19 @@ namespace DutchTreat.Data
 {
     public interface IDutchRepository
     {
+        // GET PRODUCTS
         IEnumerable<Product> GetAllProducts();
         IEnumerable<Product> GetProductsByCategory(string category);
+    
+        // GET ORDERS
+        IEnumerable<Order> GetAllOrders(bool includeItems);
+        Order GetOrderById(int id);
+
+        // ADD DATA TO DB
+        void AddEntity(object model);
+
+        // SAVE
         bool SaveAll();
+
     }
 }
