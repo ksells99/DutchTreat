@@ -2,6 +2,9 @@
 using DutchTreat.Data;
 using DutchTreat.Data.Entities;
 using DutchTreat.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -12,18 +15,21 @@ using System.Threading.Tasks;
 namespace DutchTreat.Controllers
 {
     [Route("api/[Controller]")]
+    [Authorize(AuthenticationSchemes=JwtBearerDefaults.AuthenticationScheme)]
     public class OrdersController : Controller
     {
 
         private readonly IDutchRepository _repository;
         private readonly ILogger<ProductsController> _logger;
         private readonly IMapper _mapper;
+        private readonly UserManager<StoreUser> _userManager;
 
-        public OrdersController(IDutchRepository repository, ILogger<ProductsController> logger, IMapper mapper)
+        public OrdersController(IDutchRepository repository, ILogger<ProductsController> logger, IMapper mapper, UserManager<StoreUser> userManager)
         {
             _repository = repository;
             _logger = logger;
             _mapper = mapper;
+            _userManager = userManager;
         }
 
         // GET all orders - can pass "includeItems" as URL param - true by default
@@ -32,7 +38,8 @@ namespace DutchTreat.Controllers
         {
             try
             {
-                var results = _repository.GetAllOrders(includeItems);
+                var username = User.Identity.Name;
+                var results = _repository.GetAllOrdersByUser(username, includeItems);
                 return Ok(_mapper.Map<IEnumerable<OrderViewModel>>(results));
             }
             catch (Exception ex)
@@ -49,7 +56,7 @@ namespace DutchTreat.Controllers
         {
             try
             {
-                var order = _repository.GetOrderById(id);
+                var order = _repository.GetOrderById(User.Identity.Name, id);
 
                 if (order != null)
                 {
@@ -71,7 +78,7 @@ namespace DutchTreat.Controllers
 
         // POST new order
         [HttpPost]
-        public IActionResult Post([FromBody]OrderViewModel model)
+        public async Task<IActionResult>  Post([FromBody]OrderViewModel model)
         {
             // Add to db
             try
@@ -87,6 +94,10 @@ namespace DutchTreat.Controllers
                     {
                         newOrder.OrderDate = DateTime.Now;
                     }
+
+                    // Set the user of the new order to current user
+                    var currentUser = await _userManager.FindByNameAsync(User.Identity.Name);
+                    newOrder.User = currentUser;
 
                     // Add to db via repository
                     _repository.AddEntity(newOrder);

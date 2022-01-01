@@ -50,7 +50,7 @@ namespace DutchTreat.Data
 
 
         // GET order by ID
-        public Order GetOrderById(int id)
+        public Order GetOrderById(string username, int id)
         {
   
 
@@ -60,7 +60,7 @@ namespace DutchTreat.Data
                 return _ctx.Orders
                     .Include(order => order.Items)
                     .ThenInclude(item => item.Product)
-                    .Where(order => order.Id == id)
+                    .Where(order => order.Id == id && order.User.UserName == username )
                     .FirstOrDefault();
             }
             catch (Exception ex)
@@ -70,6 +70,25 @@ namespace DutchTreat.Data
                 return null;
             }
         }
+
+        // GET all orders by user
+        public IEnumerable<Order> GetAllOrdersByUser(string username, bool includeItems)
+        {
+            if (includeItems)
+            {
+                return _ctx.Orders
+                    .Where(order => order.User.UserName == username)
+                    .Include(order => order.Items)
+                    .ThenInclude(item => item.Product)
+                    .ToList();
+            }
+            else
+            {
+                return _ctx.Orders
+                    .ToList();
+            }
+        }
+
 
         // GET all products
         public IEnumerable<Product> GetAllProducts()
@@ -140,5 +159,7 @@ namespace DutchTreat.Data
                 _logger.LogError($"Failed to add entity: {ex}");
             }
         }
+
+       
     }
 }

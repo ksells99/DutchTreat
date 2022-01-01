@@ -1,6 +1,7 @@
 ﻿using DutchTreat.Data;
 using DutchTreat.Models;
 using DutchTreat.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -61,11 +62,12 @@ namespace DutchTreat.Controllers
             return View();
         }
 
+        [Authorize]
         public IActionResult Shop()
         {
             // Get products from DB
             var results = _repository.GetAllProducts();
-
+            ViewBag.Title = "Shop";
             // Pass result to view
             return View(results);
         }
