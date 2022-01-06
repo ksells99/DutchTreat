@@ -1,5 +1,15 @@
 ﻿<div class="row">
-    <ul>
-        <li *ngFor="let product of products">{{product.title}} - £{{product.price}}</li>
-    </ul>
+        <div *ngFor="let product of store.products" class="col-md-4">
+                <div class="border bg-light rounded p-1">
+                    <img src="/img/{{product.artId}}.jpg" class="img-fluid product-image" alt="{{product.title}}" />
+                    <h5>{{product.category}} - {{product.size}}</h5>
+                    <ul class="products-props">
+                        <li>Price: {{product.price | currency:"GBP" }}</li>
+                        <li>Artist: {{product.artist}}</li>
+                        <li>Title: {{product.title}}</li>
+                        <li>{{product.artDescription}}</li>
+                    </ul>
+                    <button id="buyButton" class="btn btn-success" (click)="store.addToOrder(product)">Buy</button>
+                </div>
+        </div>
 </div>
