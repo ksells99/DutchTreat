@@ -1,7 +1,8 @@
-﻿import { HttpClient } from "@angular/common/http";
+﻿import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import {map} from "rxjs/operators"
+import { LoginRequest, LoginResults } from "../shared/LoginResults";
 import { Order, OrderItem } from "../shared/Order";
 import { Product } from "../shared/Product";
 
@@ -14,11 +15,36 @@ export class Store {
 
     public products: Product[] = [];
     public order: Order = new Order();
+    public token = "";
+    public expiration = new Date();
 
     loadProducts(): Observable<void> {
         return this.http.get<[]>("/api/products").pipe(map(data => {
             this.products = data;
             return
+        }));
+    }
+
+    get loginRequired(): boolean {
+        // Returns true if no token or expiry date passed
+        return this.token.length === 0 || this.expiration > new Date()
+    }
+
+    login(credentials: LoginRequest) {
+        return this.http.post<LoginResults>("/account/createtoken", credentials)
+            .pipe(map(data => {
+                this.token = data.token;
+                this.expiration = data.expiration;
+            }))
+    }
+
+    checkout() {
+        const headers = new HttpHeaders().set("Authorization", `Bearer ${this.token}`)
+        return this.http.post("/api/orders", this.order, {
+            headers: headers
+        }).pipe(map(() => {
+            // Reset order object once checkout complete
+            this.order = new Order();
         }));
     }
 

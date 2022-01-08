@@ -18,7 +18,7 @@ namespace DutchTreat.Data
                 .ForMember(order => order.OrderId, ex => ex.MapFrom(order => order.Id))
                 .ReverseMap();
 
-            CreateMap<OrderItem, OrderItemViewModel>().ReverseMap();
+            CreateMap<OrderItem, OrderItemViewModel>().ReverseMap().ForMember(m => m.Product, opt => opt.Ignore());
         }
     }
 }
